@@ -8,7 +8,7 @@ class BasicCamera
 {
 protected:
 	Vec2	m_center = Scene::Center();
-	double	m_scale= 1.0;
+	double	m_scale = 1.0;	// 数値が大きいほど拡大される。
 
 public:
 	BasicCamera() = default;
@@ -18,14 +18,28 @@ public:
 		, m_scale(scale)
 	{}
 
+	// 描画対象の切り取り領域を返す
 	[[nodiscard]] RectF getCameraRect() const { return RectF(Scene::Size() / m_scale).setCenter(m_center); }
+
 	[[nodiscard]] Mat3x2 getMat3x2() const { return Mat3x2::Translate(-m_center).scaled(m_scale).translated(Scene::Size() * 0.5); }
+
 	[[nodiscard]] Transformer2D createTransformer() const { return Transformer2D(getMat3x2(), true); }
 
-	void		setCenter(const Vec2& center) { m_center = center; }
-	void		setScale(double scale) { m_scale= scale; }
+	// 描画対象の切り取り領域を設定する
+	void		setCameraRect(const RectF& rect)
+	{
+		setCenter(rect.center());
+		setScale(Max(Scene::Width() / rect.w, Scene::Height() / rect.h));
+	}
 
+	// 描画対象の切り取り領域の中心を設定する
+	void		setCenter(const Vec2& center) { m_center = center; }
+
+	void		setScale(double scale) { m_scale = scale; }
+
+	// 描画対象の切り取り領域の中心を返す
 	const Vec2& getCenter() const noexcept { return m_center; }
+
 	double		getScale() const noexcept { return m_scale; }
 };
 
@@ -46,14 +60,14 @@ class CursorCamera
 
 protected:
 	Vec2		m_targetCenter = Scene::Size() * 0.5;
-	double		m_targetScale= 1.0;
+	double		m_targetScale = 1.0;
 
 	void magnify()
 	{
 		const auto delta = 1.0 + m_magnifyingSensitivity * Mouse::Wheel();
-		const auto cursorPos = (Cursor::PosF() - Scene::Size() * 0.5) / m_targetScale+ m_targetCenter;
+		const auto cursorPos = (Cursor::PosF() - Scene::Size() * 0.5) / m_targetScale + m_targetCenter;
 
-		m_targetScale/= delta;
+		m_targetScale /= delta;
 		m_targetCenter = (m_targetCenter - cursorPos) * delta + cursorPos;
 	}
 
@@ -68,7 +82,7 @@ protected:
 	void follow()
 	{
 		m_center = Math::Lerp(m_center, m_targetCenter, m_followingSpeed);
-		m_scale= 1.0 / Math::Lerp(1.0 / m_scale, 1.0 / m_targetScale, m_followingSpeed);
+		m_scale = 1.0 / Math::Lerp(1.0 / m_scale, 1.0 / m_targetScale, m_followingSpeed);
 	}
 
 public:
@@ -104,7 +118,7 @@ public:
 	void	setControls(const std::array<std::function<bool()>, 4> & controls) noexcept { m_controls = controls; }
 
 	void	setTargetCenter(const Vec2& targetCenter) noexcept { m_targetCenter = targetCenter; }
-	void	setTargetScale(double targetScale) noexcept { m_targetScale= targetScale; }
+	void	setTargetScale(double targetScale) noexcept { m_targetScale = targetScale; }
 
 	RectF	getTargetCameraRect() const { return RectF(Scene::Size() / m_targetScale).setCenter(m_targetCenter); }
 };
@@ -113,16 +127,16 @@ class RestrictedCamera2D
 	: public CursorCamera
 {
 	RectF	m_restrictedRect = Scene::Rect();
-	double	m_minScale= 1.0;
-	double	m_maxScale= 8.0;
+	double	m_minScale = 1.0;
+	double	m_maxScale = 8.0;
 
 	void	restrictScale()
 	{
 		auto min = Max({ m_minScale, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
 		auto max = m_maxScale;
 
-		if (m_scale< min) { m_scale= min; }
-		if (m_scale> max) { m_scale= max; }
+		if (m_scale < min) { m_scale = min; }
+		if (m_scale > max) { m_scale = max; }
 	}
 
 	void	restrictRect()
@@ -145,8 +159,8 @@ class RestrictedCamera2D
 		auto min = Max({ m_minScale, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
 		auto max = m_maxScale;
 
-		if (m_targetScale< min) { m_targetScale= min; }
-		if (m_targetScale> max) { m_targetScale= max; }
+		if (m_targetScale < min) { m_targetScale = min; }
+		if (m_targetScale > max) { m_targetScale = max; }
 	}
 
 	void	restrictTargetRect()
@@ -224,7 +238,7 @@ public:
 
 	void	setMaxScale(double maxScale)
 	{
-		m_maxScale= maxScale;
+		m_maxScale = maxScale;
 
 		restrictScale();
 		restrictRect();
@@ -234,7 +248,7 @@ public:
 
 	void	setMinScale(double minScale)
 	{
-		m_minScale= minScale;
+		m_minScale = minScale;
 
 		restrictScale();
 		restrictRect();
