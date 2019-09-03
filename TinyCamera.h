@@ -4,6 +4,7 @@
 # include <Siv3D.hpp> // OpenSiv3D v0.2.6
 */
 
+// 表示領域からTransformerを作成できる
 class BasicCamera
 {
 protected:
@@ -43,6 +44,7 @@ public:
 	double		getScale() const noexcept { return m_scale; }
 };
 
+// キーコントロールと、追従ができる
 class CursorCamera
 	: public BasicCamera
 {
@@ -123,6 +125,7 @@ public:
 	RectF	getTargetCameraRect() const { return RectF(Scene::Size() / m_targetScale).setCenter(m_targetCenter); }
 };
 
+// 表示領域の限界を設定できる
 class RestrictedCamera2D
 	: public CursorCamera
 {
