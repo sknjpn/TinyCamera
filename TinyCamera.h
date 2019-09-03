@@ -129,7 +129,9 @@ public:
 class RestrictedCamera2D
 	: public CursorCamera
 {
+	// 切り取り領域の制限範囲
 	RectF	m_restrictedRect = Scene::Rect();
+	
 	double	m_minScale = 1.0;
 	double	m_maxScale = 8.0;
 
@@ -229,6 +231,7 @@ public:
 		follow();
 	}
 
+	// 切り取り領域の制限領域の設定
 	void	setRestrictedRect(RectF restrictedRect)
 	{
 		m_restrictedRect = restrictedRect;
@@ -239,6 +242,7 @@ public:
 		restrictTargetRect();
 	}
 
+	// 最大拡大率の設定
 	void	setMaxScale(double maxScale)
 	{
 		m_maxScale = maxScale;
@@ -249,6 +253,7 @@ public:
 		restrictTargetRect();
 	}
 
+	// 最小拡大率の設定
 	void	setMinScale(double minScale)
 	{
 		m_minScale = minScale;
