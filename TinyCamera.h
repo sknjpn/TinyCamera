@@ -195,7 +195,7 @@ public:
 		restrictTargetRect();
 	}
 
-	RestrictedCamera2D(const RectF restrictedRect, double minScale, double maxScale)
+	RestrictedCamera2D(const RectF& restrictedRect, double minScale, double maxScale)
 		: m_restrictedRect(restrictedRect)
 		, m_minScale(minScale)
 		, m_maxScale(maxScale)
@@ -206,7 +206,7 @@ public:
 		restrictTargetRect();
 	}
 
-	RestrictedCamera2D(const Vec2& targetCenter, double targetScale, const RectF restrictedRect, double minScale, double maxScale)
+	RestrictedCamera2D(const Vec2& targetCenter, double targetScale, const RectF& restrictedRect, double minScale, double maxScale)
 		: CursorCamera(targetCenter, targetScale)
 		, m_restrictedRect(restrictedRect)
 		, m_minScale(minScale)
