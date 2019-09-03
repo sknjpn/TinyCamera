@@ -49,7 +49,7 @@ class CursorCamera
 	: public BasicCamera
 {
 	double		m_followingSpeed = 0.25;
-	double		m_magnifyingSensitivity = 0.1;
+	double		m_scalingSensitivity = 0.1;
 	double		m_movingSensitivity = 0.02;
 
 	std::array<std::function<bool()>, 4> m_controls =
@@ -66,7 +66,7 @@ protected:
 
 	void magnify()
 	{
-		const auto delta = 1.0 + m_magnifyingSensitivity * Mouse::Wheel();
+		const auto delta = 1.0 + m_scalingSensitivity * Mouse::Wheel();
 		const auto cursorPos = (Cursor::PosF() - Scene::Size() * 0.5) / m_targetScale + m_targetCenter;
 
 		m_targetScale /= delta;
@@ -96,12 +96,12 @@ public:
 		, m_targetScale(targetScale)
 	{}
 
-	CursorCamera(const Vec2& targetCenter, double targetScale, double followingSpeed, double magnifyingSensitivity, double movingSensitivity)
+	CursorCamera(const Vec2& targetCenter, double targetScale, double followingSpeed, double scalingSensitivity, double movingSensitivity)
 		: BasicCamera(targetCenter, targetScale)
 		, m_targetCenter(targetCenter)
 		, m_targetScale(targetScale)
 		, m_followingSpeed(followingSpeed)
-		, m_magnifyingSensitivity(magnifyingSensitivity)
+		, m_scalingSensitivity(scalingSensitivity)
 		, m_movingSensitivity(movingSensitivity)
 	{}
 
@@ -115,7 +115,7 @@ public:
 	}
 
 	void	setFollowingSpeed(double followingSpeed) noexcept { m_followingSpeed = followingSpeed; }
-	void	setMagnifyingSensitivity(double magnifyingSensitivity) noexcept { m_magnifyingSensitivity = magnifyingSensitivity; }
+	void	setMagnifyingSensitivity(double scalingSensitivity) noexcept { m_scalingSensitivity = scalingSensitivity; }
 	void	setMovingSensitivity(double movingSensitivity) noexcept { m_movingSensitivity = movingSensitivity; }
 	void	setControls(const std::array<std::function<bool()>, 4> & controls) noexcept { m_controls = controls; }
 
