@@ -8,25 +8,25 @@ class BasicCamera
 {
 protected:
 	Vec2	m_center = Scene::Center();
-	double	m_magnification = 1.0;
+	double	m_scale= 1.0;
 
 public:
 	BasicCamera() = default;
 
-	BasicCamera(const Vec2& center, double magnification)
+	BasicCamera(const Vec2& center, double scale)
 		: m_center(center)
-		, m_magnification(magnification)
+		, m_scale(scale)
 	{}
 
-	[[nodiscard]] RectF getCameraRect() const { return RectF(Scene::Size() / m_magnification).setCenter(m_center); }
-	[[nodiscard]] Mat3x2 getMat3x2() const { return Mat3x2::Translate(-m_center).scaled(m_magnification).translated(Scene::Size() * 0.5); }
+	[[nodiscard]] RectF getCameraRect() const { return RectF(Scene::Size() / m_scale).setCenter(m_center); }
+	[[nodiscard]] Mat3x2 getMat3x2() const { return Mat3x2::Translate(-m_center).scaled(m_scale).translated(Scene::Size() * 0.5); }
 	[[nodiscard]] Transformer2D createTransformer() const { return Transformer2D(getMat3x2(), true); }
 
 	void		setCenter(const Vec2& center) { m_center = center; }
-	void		setMagnification(double magnification) { m_magnification = magnification; }
+	void		setScale(double scale) { m_scale= scale; }
 
 	const Vec2& getCenter() const noexcept { return m_center; }
-	double		getMagnification() const noexcept { return m_magnification; }
+	double		getScale() const noexcept { return m_scale; }
 };
 
 class CursorCamera
@@ -46,44 +46,44 @@ class CursorCamera
 
 protected:
 	Vec2		m_targetCenter = Scene::Size() * 0.5;
-	double		m_targetMagnification = 1.0;
+	double		m_targetScale= 1.0;
 
 	void magnify()
 	{
 		const auto delta = 1.0 + m_magnifyingSensitivity * Mouse::Wheel();
-		const auto cursorPos = (Cursor::PosF() - Scene::Size() * 0.5) / m_targetMagnification + m_targetCenter;
+		const auto cursorPos = (Cursor::PosF() - Scene::Size() * 0.5) / m_targetScale+ m_targetCenter;
 
-		m_targetMagnification /= delta;
+		m_targetScale/= delta;
 		m_targetCenter = (m_targetCenter - cursorPos) * delta + cursorPos;
 	}
 
 	void move()
 	{
-		if (m_controls[0]()) { m_targetCenter.y -= m_movingSensitivity * Scene::Size().y / m_targetMagnification; }
-		if (m_controls[1]()) { m_targetCenter.x -= m_movingSensitivity * Scene::Size().x / m_targetMagnification; }
-		if (m_controls[2]()) { m_targetCenter.y += m_movingSensitivity * Scene::Size().y / m_targetMagnification; }
-		if (m_controls[3]()) { m_targetCenter.x += m_movingSensitivity * Scene::Size().x / m_targetMagnification; }
+		if (m_controls[0]()) { m_targetCenter.y -= m_movingSensitivity * Scene::Size().y / m_targetScale; }
+		if (m_controls[1]()) { m_targetCenter.x -= m_movingSensitivity * Scene::Size().x / m_targetScale; }
+		if (m_controls[2]()) { m_targetCenter.y += m_movingSensitivity * Scene::Size().y / m_targetScale; }
+		if (m_controls[3]()) { m_targetCenter.x += m_movingSensitivity * Scene::Size().x / m_targetScale; }
 	}
 
 	void follow()
 	{
 		m_center = Math::Lerp(m_center, m_targetCenter, m_followingSpeed);
-		m_magnification = 1.0 / Math::Lerp(1.0 / m_magnification, 1.0 / m_targetMagnification, m_followingSpeed);
+		m_scale= 1.0 / Math::Lerp(1.0 / m_scale, 1.0 / m_targetScale, m_followingSpeed);
 	}
 
 public:
 	CursorCamera() = default;
 
-	CursorCamera(const Vec2& targetCenter, double targetMagnification)
-		: BasicCamera(targetCenter, targetMagnification)
+	CursorCamera(const Vec2& targetCenter, double targetScale)
+		: BasicCamera(targetCenter, targetScale)
 		, m_targetCenter(targetCenter)
-		, m_targetMagnification(targetMagnification)
+		, m_targetScale(targetScale)
 	{}
 
-	CursorCamera(const Vec2& targetCenter, double targetMagnification, double followingSpeed, double magnifyingSensitivity, double movingSensitivity)
-		: BasicCamera(targetCenter, targetMagnification)
+	CursorCamera(const Vec2& targetCenter, double targetScale, double followingSpeed, double magnifyingSensitivity, double movingSensitivity)
+		: BasicCamera(targetCenter, targetScale)
 		, m_targetCenter(targetCenter)
-		, m_targetMagnification(targetMagnification)
+		, m_targetScale(targetScale)
 		, m_followingSpeed(followingSpeed)
 		, m_magnifyingSensitivity(magnifyingSensitivity)
 		, m_movingSensitivity(movingSensitivity)
@@ -104,25 +104,25 @@ public:
 	void	setControls(const std::array<std::function<bool()>, 4> & controls) noexcept { m_controls = controls; }
 
 	void	setTargetCenter(const Vec2& targetCenter) noexcept { m_targetCenter = targetCenter; }
-	void	setTargetMagnification(double targetMagnification) noexcept { m_targetMagnification = targetMagnification; }
+	void	setTargetScale(double targetScale) noexcept { m_targetScale= targetScale; }
 
-	RectF	getTargetCameraRect() const { return RectF(Scene::Size() / m_targetMagnification).setCenter(m_targetCenter); }
+	RectF	getTargetCameraRect() const { return RectF(Scene::Size() / m_targetScale).setCenter(m_targetCenter); }
 };
 
 class RestrictedCamera2D
 	: public CursorCamera
 {
 	RectF	m_restrictedRect = Scene::Rect();
-	double	m_minMagnification = 1.0;
-	double	m_maxMagnification = 8.0;
+	double	m_minScale= 1.0;
+	double	m_maxScale= 8.0;
 
-	void	restrictMagnification()
+	void	restrictScale()
 	{
-		auto min = Max({ m_minMagnification, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
-		auto max = m_maxMagnification;
+		auto min = Max({ m_minScale, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
+		auto max = m_maxScale;
 
-		if (m_magnification < min) { m_magnification = min; }
-		if (m_magnification > max) { m_magnification = max; }
+		if (m_scale< min) { m_scale= min; }
+		if (m_scale> max) { m_scale= max; }
 	}
 
 	void	restrictRect()
@@ -140,13 +140,13 @@ class RestrictedCamera2D
 		if (br.y < 0) { m_center.moveBy(0, br.y); }
 	}
 
-	void	restrictTargetMagnification()
+	void	restrictTargetScale()
 	{
-		auto min = Max({ m_minMagnification, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
-		auto max = m_maxMagnification;
+		auto min = Max({ m_minScale, Scene::Size().y / m_restrictedRect.h, Scene::Size().x / m_restrictedRect.w });
+		auto max = m_maxScale;
 
-		if (m_targetMagnification < min) { m_targetMagnification = min; }
-		if (m_targetMagnification > max) { m_targetMagnification = max; }
+		if (m_targetScale< min) { m_targetScale= min; }
+		if (m_targetScale> max) { m_targetScale= max; }
 	}
 
 	void	restrictTargetRect()
@@ -167,35 +167,35 @@ class RestrictedCamera2D
 public:
 	RestrictedCamera2D() = default;
 
-	RestrictedCamera2D(const Vec2& targetCenter, double targetMagnification)
-		: CursorCamera(targetCenter, targetMagnification)
+	RestrictedCamera2D(const Vec2& targetCenter, double targetScale)
+		: CursorCamera(targetCenter, targetScale)
 	{
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
-	RestrictedCamera2D(const RectF restrictedRect, double minMagnification, double maxMagnification)
+	RestrictedCamera2D(const RectF restrictedRect, double minScale, double maxScale)
 		: m_restrictedRect(restrictedRect)
-		, m_minMagnification(minMagnification)
-		, m_maxMagnification(maxMagnification)
+		, m_minScale(minScale)
+		, m_maxScale(maxScale)
 	{
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
-	RestrictedCamera2D(const Vec2& targetCenter, double targetMagnification, const RectF restrictedRect, double minMagnification, double maxMagnification)
-		: CursorCamera(targetCenter, targetMagnification)
+	RestrictedCamera2D(const Vec2& targetCenter, double targetScale, const RectF restrictedRect, double minScale, double maxScale)
+		: CursorCamera(targetCenter, targetScale)
 		, m_restrictedRect(restrictedRect)
-		, m_minMagnification(minMagnification)
-		, m_maxMagnification(maxMagnification)
+		, m_minScale(minScale)
+		, m_maxScale(maxScale)
 	{
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
@@ -203,7 +203,7 @@ public:
 	{
 		magnify();
 
-		restrictTargetMagnification();
+		restrictTargetScale();
 
 		move();
 
@@ -216,33 +216,33 @@ public:
 	{
 		m_restrictedRect = restrictedRect;
 
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
-	void	setMaxMagnification(double maxMagnification)
+	void	setMaxScale(double maxScale)
 	{
-		m_maxMagnification = maxMagnification;
+		m_maxScale= maxScale;
 
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
-	void	setMinMagnification(double minMagnification)
+	void	setMinScale(double minScale)
 	{
-		m_minMagnification = minMagnification;
+		m_minScale= minScale;
 
-		restrictMagnification();
+		restrictScale();
 		restrictRect();
-		restrictTargetMagnification();
+		restrictTargetScale();
 		restrictTargetRect();
 	}
 
 	[[nodiscard]] const RectF& getRestrictedRect() const noexcept { return m_restrictedRect; }
-	[[nodiscard]] double		getMinMagnification() const noexcept { return m_minMagnification; }
-	[[nodiscard]] double		getMaxMagnification() const noexcept { return m_maxMagnification; }
+	[[nodiscard]] double		getMinScale() const noexcept { return m_minScale; }
+	[[nodiscard]] double		getMaxScale() const noexcept { return m_maxScale; }
 };
