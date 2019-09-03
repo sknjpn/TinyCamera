@@ -131,7 +131,7 @@ class RestrictedCamera2D
 {
 	// 切り取り領域の制限範囲
 	RectF	m_restrictedRect = Scene::Rect();
-	
+
 	double	m_minScale = 1.0;
 	double	m_maxScale = 8.0;
 
@@ -267,4 +267,29 @@ public:
 	[[nodiscard]] const RectF& getRestrictedRect() const noexcept { return m_restrictedRect; }
 	[[nodiscard]] double		getMinScale() const noexcept { return m_minScale; }
 	[[nodiscard]] double		getMaxScale() const noexcept { return m_maxScale; }
+};
+
+class TinyCamera
+{
+public:
+	Vec2		m_targetCenter = Scene::Size() * 0.5;
+	double		m_targetScale = 1.0;
+
+	double		m_followingSpeed = 0.25;
+	double		m_scalingSensitivity = 0.1;
+	double		m_movingSensitivity = 0.02;
+
+	std::array<std::function<bool()>, 4> m_controls =
+	{
+		[]() { return KeyW.pressed() || Cursor::Pos().y <= 0; },
+		[]() { return KeyA.pressed() || Cursor::Pos().x <= 0; },
+		[]() { return KeyS.pressed() || Cursor::Pos().y >= Scene::Height() - 1; },
+		[]() { return KeyD.pressed() || Cursor::Pos().x >= Scene::Width() - 1; },
+	};
+
+	Optional<double>	m_minScale = 1.0;
+	Optional<double>	m_maxScale = 8.0;
+
+	// 切り取り領域の制限範囲
+	Optional<RectF>		m_restrictedRect = RectF(Scene::Rect());
 };
