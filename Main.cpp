@@ -16,15 +16,23 @@ void Main()
 	// 猫の座標
 	Vec2 catPos(640, 450);
 
-	RestrictedCamera2D camera;
+	TinyCamera camera;
+	camera.setScreen(Rect(200, 150, 400, 300));
+	camera.setScale(0.25);
+	camera.setRestrictedRect(RectF(Scene::Size()));
+	camera.setMinScale(0.5);
+	camera.setMaxScale(4.0);
 
 	while (System::Update())
 	{
+		camera.getScreen().drawFrame(2.0, Palette::Black);
 		camera.update();
-		camera.getRestrictedRect().drawFrame(1.0, Palette::Red);
 		
 		{
 			auto t = camera.createTransformer();
+			auto sv = camera.createScopedViewport();
+
+			Rect(800, 600).draw(Palette::Lightgreen).drawFrame(16.0, Palette::Red);
 
 			// テキストを画面の中心に描く
 			font(U"Hello, Siv3D!🐣").drawAt(Scene::Center(), Palette::Black);
