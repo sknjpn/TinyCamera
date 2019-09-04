@@ -66,6 +66,11 @@ class TinyCamera
 	// 移動の速度 (dot per frame)
 	double		m_movingSensitivity = 0.02;
 
+	// 画面外でもコントロールを有効にする
+	bool		m_controlOutOfScreenEnabled = false;
+
+	std::function<double()> m_wheelControl = []() { return Mouse::Wheel(); };
+
 	// 移動に対するコントロール条件
 	std::array<std::function<bool()>, 4> m_controls =
 	{
@@ -85,7 +90,7 @@ class TinyCamera
 	// 拡大縮小を行う
 	void magnify()
 	{
-		const auto delta = 1.0 + m_scalingSensitivity * Mouse::Wheel();
+		const auto delta = 1.0 + m_scalingSensitivity * m_wheelControl();
 		const auto cursorPos = (Cursor::PosF() - m_screen.center()) / m_targetScale + m_targetCenter;
 
 		m_targetScale /= delta;
@@ -153,15 +158,18 @@ class TinyCamera
 public:
 	TinyCamera() = default;
 
-	void update()
+	void update(bool controlEnabled = true)
 	{
-		magnify();
+		if (controlEnabled && (m_controlOutOfScreenEnabled || m_screen.mouseOver()))
+		{
+			magnify();
 
-		restrictTargetScale();
+			restrictTargetScale();
 
-		move();
+			move();
 
-		restrictTargetRect();
+			restrictTargetRect();
+		}
 
 		follow();
 	}
@@ -210,6 +218,7 @@ public:
 
 	void	setTargetCenter(const Vec2& targetCenter) noexcept { m_targetCenter = targetCenter; }
 	void	setTargetScale(double targetScale) noexcept { m_targetScale = targetScale; }
+	bool	setControlOutOfScreenEnabled(bool enabled) noexcept { m_controlOutOfScreenEnabled = enabled; }
 
 	RectF	getTargetCameraRect() const { return RectF(m_screen.size / m_targetScale).setCenter(m_targetCenter); }
 };
